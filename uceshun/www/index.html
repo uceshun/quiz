@@ -67,20 +67,6 @@
   
   
   <script>
-// create a geoJSON feature -
-var geojsonFeature = {
- "type": "Feature",
- "properties": {
- "name": "London",
- "popupContent": "This is where UCL is based"
- },
- "geometry": {
- "type": "Point",
- "coordinates": [-0.134040, 51.524559]
- }
-};
-// and add it to the map
-L.geoJSON(geojsonFeature).addTo(mymap).bindPopup("<b>"+geojsonFeature.properties.name+""+geojsonFeature.properties.popupContent+"<b>");
 </script>
   
   <body>
@@ -105,17 +91,19 @@ L.geoJSON(geojsonFeature).addTo(mymap).bindPopup("<b>"+geojsonFeature.properties
 <nav class="demo-navigation mdl-navigation mdl-color--deep-purple">
 			<a class="mdl-navigation__link"><i class="mdl-color-text--blue-grey-400 material-icons" role="presentation">help_outline</i>Answer Questions</a>
           <div id="question">Question</div>
-          <div id="answer1">Answer1</div><input type="radio" name="answerlist" value="1" id="option1"> <br/>
-          <div id="answer2">Answer2</div><input type="radio" name="answerlist" value="2" id="option2"> <br/>
-          <div id="answer3">Answer3</div><input type="radio" name="answerlist" value="3" id="option3"> <br/>
-          <div id="answer4">Answer4</div><input type="radio" name="answerlist" value="4" id="option4"> <br/>
+          <div id="answer1">Answeri</div><input type="radio" name="answerlist" value="1" id="option1"> <br/>
+          <div id="answer2">Answerii</div><input type="radio" name="answerlist" value="2" id="option2"> <br/>
+          <div id="answer3">Answeriii</div><input type="radio" name="answerlist" value="3" id="option3"> <br/>
+          <div id="answer4">Answeriv</div><input type="radio" name="answerlist" value="4" id="option4"> <br/>
         </nav>
       </div>
      <main class="mdl-layout__content mdl-color--grey-100">
 	 <div class="demo-charts mdl-color--white mdl-shadow--2dp mdl-cell mdl-cell--12-col mdl-grid"> 
 		<div id="mapid" style="width: 1600px; height: 400px;"></div>
          </div>
-		 
+		 <!-- Locations -->
+		 <b>The pink pins are Question Markers</b>
+		 <b>while the red pins is Warrent St. Station</b>
 		<!--Show your location -->
 		<div id="loopresults">The results will appear here</div>
 		<button id="start loop" onclick="processGeoJSON()">Click here to start</button>

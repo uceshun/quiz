@@ -83,9 +83,6 @@ L.marker([51.523409, -0.132747], {icon:testMarkerPink}).addTo(mymap).bindPopup("
 // 	mymap.setView([position.coords.latitude, position.coords.longitude], 13);
 }
 		
-// WHYYYYYYYY (from IM)
-// questionMarker = [];
-
 
 // the variables
 // and a variable that will hold the layer itself – we need to do this outside the function so that we can use it to remove the layer later on 
@@ -180,8 +177,8 @@ function getDistanceFromPoint(position) {
 // return the distance in kilometers
     var distance = calculateDistance(position.coords.latitude, position.coords.longitude, lat,lng, 'K');
     document.getElementById('showDistance').innerHTML = "Distance: " + distance;
-    if (distance>0.16){
-	L.marker([51.525569, -0.136046]).addTo(mymap).bindPopup("<b>Within 10m</b>").openPopup();}
+    if (distance<0.5){
+	L.marker([position.coords.latitude, position.coords.longitude]).addTo(mymap).on('click', onclick).bindPopup("<b>ClickMe!</b>").openPopup();}
  }
  
  // code adapted from https://www.htmlgoodies.com/beyond/javascript/calculate-the-distance-between-two-points-inyour-web-apps.html
