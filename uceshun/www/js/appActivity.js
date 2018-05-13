@@ -23,9 +23,9 @@ var testMarkerPink = L.AwesomeMarkers.icon({
 
 // this is the code that runs when the App starts
 	loadMap();
-//WHYYYYYYYYYYYYYYYYYYYYYYYYYYY
+	
 	tracklocation();
-//WHYYYYYYYYYYYYYYYYYYYYYYYYYYY
+	
 	GeoJSONlayer();
 				
 // ***********************************
@@ -76,33 +76,37 @@ function showPosition(position) {
 // Show Warrent Street Location
 L.marker([51.524616, -0.138180], {icon:testMarkerRed}).addTo(mymap).bindPopup("<b>Warrent St. Station</b>").openPopup();
 // Show Question Points Location
-L.marker([51.522944, -0.128], {icon:testMarkerPink}).addTo(mymap).bindPopup("<b>IOE</b>").openPopup();
-L.marker([51.524239, -0.134378], {icon:testMarkerPink}).addTo(mymap).bindPopup("<b>Chadwick Building</b>").openPopup();
-L.marker([51.524753, -0.133506], {icon:testMarkerPink}).addTo(mymap).bindPopup("<b>Main Library</b>").openPopup();
-L.marker([51.523409, -0.132747], {icon:testMarkerPink}).addTo(mymap).bindPopup("<b>Science Library</b>").openPopup();
+L.marker([51.522944, -0.128], {icon:testMarkerPink}).addTo(mymap).bindPopup("<b>IOE, please answer question 4</b>").openPopup();
+L.marker([51.524239, -0.134378], {icon:testMarkerPink}).addTo(mymap).bindPopup("<b>Chadwick Building, please answer question 2</b>").openPopup();
+L.marker([51.524753, -0.133506], {icon:testMarkerPink}).addTo(mymap).bindPopup("<b>Main Library, please answer question 3</b>").openPopup();
+L.marker([51.523409, -0.132747], {icon:testMarkerPink}).addTo(mymap).bindPopup("<b>Science Library, please answer question 1</b>").openPopup();
 // 	mymap.setView([position.coords.latitude, position.coords.longitude], 13);
 }
 		
 
-// the variables
+// the variables (week5) (This idea also from Claire's Github week5app)
 // and a variable that will hold the layer itself – we need to do this outside the function so that we can use it to remove the layer later on 
 var GeoJSONlayer;
 
 // call the server (week6)
-// create code to get ____ data using XMLHttpRequest
+// create code to get data using XMLHttpRequest
 function getGeoJSONlayer() {
    // set up the request
    client = new XMLHttpRequest();
-   // make the request to _____ data (week2)
-   client.open('GET','http://developer.cege.ucl.ac.uk:30298/uploadData');
+   // make the request to data (week2)
+   client.open('GET','http://developer.cege.ucl.ac.uk:30298/getData');
    // tell the request what method to run that will listen for the response
-   client.onreadystatechange = uploadDataResponse;  // uploadData is the database that store list of question set-up by QSA earlier
+   client.onreadystatechange = getDataResponse;  // getData is the database that store list of question set-up by QSA earlier
    // activate the request
    client.send();
 }
 
+// From httpServer.js
+// where use app.get can achieve to download JSON for map display in both apps.
+var getData;
+
 // receive the response (week6)
-function uploadDataResponse() {
+function getDataResponse() {
   // wait for a response - if readyState is not 4 then keep waiting 
   if (client.readyState == 4) {
     // get the data from the response
@@ -111,6 +115,12 @@ function uploadDataResponse() {
     loadGeoJSONlayer(earthquakedata);
   }
 }
+
+// In here, an empty matrix is create to store up the question makers that 
+// contain the questions from database later on
+// This will be defined as "Store" here, which is empty at this moment,
+qmstore = [];
+
 function loadGeoJSONlayer(earthquakedata) {
       // convert the text received from the server to JSON 
       var earthquakejson = JSON.parse(earthquakedata );
@@ -135,53 +145,7 @@ function loadGeoJSONlayer(earthquakedata) {
     mymap.fitBounds(earthquakelayer.getBounds());
 }
 
-
-//*************************
-// functions to change the DIV content using AJAX - week 5
-
-// var  xhr;  // define the global variable to process the AJAX request
-// function callDivChange() {
-// 
-// 	 xhr = new XMLHttpRequest();
-// 
-// 	 // use an HTTP request here as Edge doesn't work with HTTPS over express
-// 	 xhr.open('GET', 'http://developer.cege.ucl.ac.uk:30261/dir1/dir2/objectTest5.html');
-// 	 xhr.onreadystatechange = processDivChange;
-// 	xhr.send();
-// }  
-// function processDivChange() {
-// if (xhr.readyState < 4)    {}                     // while waiting response from server
-//         //document.getElementById('ajaxtest').innerHTML = "Loading...";
-// 
-//     else {
-// 		if (xhr.readyState === 4) {               // 4 = Response from server has been completely loaded.
-//             document.getElementById('ajaxtest').innerHTML = xhr.responseText;
-//     }
-// }
-// }
-
-function getDistanceFromPoint(position) {
-// find the coordinates of a point using this website:
-//var geoJSON = JSON.parse(geoJSONString);
-//alert(geoJSON[0].features[1].geometry.coordinates[1]);
-
-//for(var i = 0; i < geoJSON[0].features.length; i++) {
-//var feature = geoJSON[0].features[i];
- //   for (component in feature){
-	   // if (component =="geometry"){
-		   // for (geometry in feature[component]){
-	var lng=-0.145;
-	var lat=51.569;
-	 
-//alert(lng);
-// return the distance in kilometers
-    var distance = calculateDistance(position.coords.latitude, position.coords.longitude, lat,lng, 'K');
-    document.getElementById('showDistance').innerHTML = "Distance: " + distance;
-    if (distance<0.5){
-	L.marker([position.coords.latitude, position.coords.longitude]).addTo(mymap).on('click', onclick).bindPopup("<b>ClickMe!</b>").openPopup();}
- }
- 
- // code adapted from https://www.htmlgoodies.com/beyond/javascript/calculate-the-distance-between-two-points-inyour-web-apps.html
+// code adapted from https://www.htmlgoodies.com/beyond/javascript/calculate-the-distance-between-two-points-inyour-web-apps.html
 function calculateDistance(lat1, lon1, lat2, lon2, unit) {
  var radlat1 = Math.PI * lat1/180;
  var radlat2 = Math.PI * lat2/180;
@@ -198,6 +162,19 @@ function calculateDistance(lat1, lon1, lat2, lon2, unit) {
  if (unit=="N") { dist = dist * 0.8684 ;} // convert miles to nautical miles
  return dist;
  }
+
+function getDistanceFromPoint(position) {
+// find the coordinates of a point using this website:
+// the coordinates of Warrent St Station
+	var lngW=-0.138180;
+	var latW=51.524616;
+	
+// return the distance in kilometers
+    var distance = calculateDistance(position.coords.latitude, position.coords.longitude, latW,lngW, 'K');
+    document.getElementById('showDistance').innerHTML = "Distance: " + distance;
+	if (distance < 0.15 ){
+		L.marker([position.coords.latitude, position.coords.longitude]).addTo(mymap).bindPopup("<b>Please click the neatest tab</b>").openPopup();}
+}
 
 // This code is provided by Claire in week 6 appendix, which is
 // used to calculate current distance between chosen points 

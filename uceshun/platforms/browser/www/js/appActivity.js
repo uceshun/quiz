@@ -1,27 +1,18 @@
-//* Code used/adapted from https://github.com/claireellul/cegeg077-week5app/blob/master/ucfscde/www/js/appActivity.js
-
-// global variables
-var getgeoJSONlayer;
+//////////////////////////////////////////////////////////////////////////////////////////////////////
+//////////// This code is refer to Claire's GitHub code in file called cegeg077-week5app /////////////
+///////////Most of the code are from practical that i will reference specfically at below/////////////
+// Link: https://github.com/claireellul/cegeg077-week5app/blob/master/ucfscde/www/js/appActivity.js///
+//////////////////////////////////////////////////////////////////////////////////////////////////////
 
 // a global variable to hold the http request
 var client;
-
 // store the map
 var mymap;
 
+// Using Custom Icon (from week2)
 var testMarkerRed = L.AwesomeMarkers.icon({
 	icon: 'play',
 	markerColor: 'red'
-});
-
-var testMarkerOrange = L.AwesomeMarkers.icon({
-	icon: 'play',
-	markerColor: 'orange'
-	});
-
-var testMarkerBlue = L.AwesomeMarkers.icon({
-	icon: 'play',
-	markerColor: 'blue'
 });
 
 var testMarkerPink = L.AwesomeMarkers.icon({
@@ -29,279 +20,197 @@ var testMarkerPink = L.AwesomeMarkers.icon({
 	markerColor: 'pink'
 });
 
-var popup = L.popup();
 
 // this is the code that runs when the App starts
+	loadMap();
+	
+	tracklocation();
+	
+	GeoJSONlayer();
+				
+// ***********************************
+// the functions
 
-loadMap();
-trackLocation();
-getgeoJSONlayer();
-
-//loads leaflet map
+// Adding Basic Leaflet Map (Week 2/ provide by Claire's GitHub in cegeg077-week5app also)
+// This script is to load the map, set default view & zoom as well as loading basemap tiles
 function loadMap(){
-		mymap = L.map('mapid').setView([51.505, -0.09], 13);
-		// load the tiles
-		L.tileLayer('https://api.tiles.mapbox.com/v4/{id}/{z}/{x}/{y}.png?access_token=pk.eyJ1IjoibWFwYm94IiwiYSI6ImNpejY4NXVycTA2emYycXBndHRqcmZ3N3gifQ.rJcFIG214AriISLbB6B5aw', {
-			maxZoom: 18,
-			attribution: 'Map data &copy; <a href="http://openstreetmap.org">OpenStreetMap</a> contributors, ' +
+	mymap = L.map('mapid').setView([51.505, -0.09], 13);
+
+
+	// load the tiles
+	L.tileLayer('https://api.tiles.mapbox.com/v4/{id}/{z}/{x}/{y}.png?access_token=pk.eyJ1IjoibWFwYm94IiwiYSI6ImNpejY4NXVycTA2emYycXBndHRqcmZ3N3gifQ.rJcFIG214AriISLbB6B5aw', {
+	maxZoom: 18,
+	attribution: 'Map data &copy; <a href="http://openstreetmap.org">OpenStreetMap</a> contributors, ' +
 				'<a href="http://creativecommons.org/licenses/by-sa/2.0/">CC-BY-SA</a>, ' +
 				'Imagery © <a href="http://mapbox.com">Mapbox</a>',
-			id: 'mapbox.streets'
-		}).addTo(mymap);
+	id: 'mapbox.streets'
+	}).addTo(mymap);
+
 }
 
-
-
-//FUNCTIONS FOR QUIZ APP ===========
-
-
-//tracks location of user movement and show on leaflet map
+// Track Location (week 1)
 function trackLocation() {
     if (navigator.geolocation) {
         navigator.geolocation.watchPosition(showPosition);
     } else {
 		alert("geolocation is not supported by this browser");
-    }
-}
+		document.getElementById('showLocation').innerHTML = "Geolocation is not supported by this browser.";
+	}
+		navigator.geolocation.watchPosition(getDistanceFromPoint);
+	}
 
-// Show users location on map with point and a raidus of 50m
+// Show user location
 function showPosition(position) {
-    var radius = 50
+	document.getElementById('showLocation').innerHTML = "Latitude: " + position.coords.latitude +
+	"<br>Longitude: " + position.coords.longitude;
+	// draw a point on the map
+	L.marker([position.coords.latitude, position.coords.longitude]).addTo(mymap)
+		.bindPopup("<b>You are at "+ position.coords.latitude + " "+position.coords.longitude+"!</b>");
+	// draw circle surrounded the point
+	L.circle([position.coords.latitude, position.coords.longitude], 100, {
+		color: 'red',
+		fillColor: '#f03',
+		fillOpacity: 0.5
+	}).addTo(mymap);
 	
-    user = L.marker([position.coords.latitude, position.coords.longitude]).bindPopup("<b>Current location </b>").addTo(mymap);
-    //circle with 50m radius around user location - to visually show which question points are closer
-    UserRadius = L.circle([position.coords.latitude, position.coords.longitude], radius).addTo(mymap);
+// Show Warrent Street Location
+L.marker([51.524616, -0.138180], {icon:testMarkerRed}).addTo(mymap).bindPopup("<b>Warrent St. Station</b>").openPopup();
+// Show Question Points Location
+L.marker([51.522944, -0.128], {icon:testMarkerPink}).addTo(mymap).bindPopup("<b>IOE, please answer question 4</b>").openPopup();
+L.marker([51.524239, -0.134378], {icon:testMarkerPink}).addTo(mymap).bindPopup("<b>Chadwick Building, please answer question 2</b>").openPopup();
+L.marker([51.524753, -0.133506], {icon:testMarkerPink}).addTo(mymap).bindPopup("<b>Main Library, please answer question 3</b>").openPopup();
+L.marker([51.523409, -0.132747], {icon:testMarkerPink}).addTo(mymap).bindPopup("<b>Science Library, please answer question 1</b>").openPopup();
+// 	mymap.setView([position.coords.latitude, position.coords.longitude], 13);
 }
-
-
-//to store point markers with questions
-questionMarker = [];
-
-//Variable to hold points 
-var questionData;
 		
-		
-//Gets the question data from the database using XMLHttprequest
-function getgeoJSONlayer() {
+
+// the variables (week5) (This idea also from Claire's Github week5app)
+// and a variable that will hold the layer itself – we need to do this outside the function so that we can use it to remove the layer later on 
+var GeoJSONlayer;
+
+// call the server (week6)
+// create code to get data using XMLHttpRequest
+function getGeoJSONlayer() {
    // set up the request
    client = new XMLHttpRequest();
-   // make the request to the URL
-   client.open('GET','http://developer.cege.ucl.ac.uk:30264/getquestionData');
+   // make the request to data (week2)
+   client.open('GET','http://developer.cege.ucl.ac.uk:30298/getData');
    // tell the request what method to run that will listen for the response
-   client.onreadystatechange = DataResponse;  // note don't use earthquakeResponse() with brackets as that doesn't work
+   client.onreadystatechange = getDataResponse;  // getData is the database that store list of question set-up by QSA earlier
    // activate the request
    client.send();
 }
-// receives response from server & processes it
-function DataResponse() {
+
+// From httpServer.js
+// where use app.get can achieve to download JSON for map display in both apps.
+var getData;
+
+// receive the response (week6)
+function getDataResponse() {
   // wait for a response - if readyState is not 4 then keep waiting 
   if (client.readyState == 4) {
     // get the data from the response
-    var ResData = client.responseText;
+    var earthquakedata = client.responseText;
     // call a function that does something with the data
-    loadquestionData(ResData);
+    loadGeoJSONlayer(earthquakedata);
   }
 }
-//Convert recieved data to JSON and show on leaflet map
-function loadquestionData(ResData) {
+
+// In here, an empty matrix is create to store up the question makers that 
+// contain the questions from database later on
+// This will be defined as "Store" here, which is empty at this moment,
+qmstore = [];
+
+function loadGeoJSONlayer(earthquakedata) {
       // convert the text received from the server to JSON 
-      var dataJSON = JSON.parse(ResData);
+      var earthquakejson = JSON.parse(earthquakedata );
 
       // load the geoJSON layer
-      var questionData = L.geoJson(dataJSON,
+      var GeoJSONlayer = L.geoJson(earthquakejson,
         {
-            // use point to layer to create the question points needed
-            pointToLayer: function (feature, latlng){
-                    PNTMark = L.marker(latlng)
-                    PNTMark.bindPopup("<b>"+feature.properties.location_name +"</b>");
-                questionMarker.push(PNTMark);
-                return PNTMark;   
+            // use point to layer to create the points
+            pointToLayer: function (feature, latlng)
+            {
+              // look at the GeoJSON file - specifically at the properties - to see the earthquake magnitude and use a different marker depending on this value
+              // also include a pop-up that shows the place value of the earthquakes
+              if (feature.properties.mag > 1.75) {
+                 return L.marker(latlng, {icon:testMarkerRed}).bindPopup("<b>"+feature.properties.place +"</b>");
+              }
+              else {
+                // magnitude is 1.75 or less
+                return L.marker(latlng, {icon:testMarkerPink}).bindPopup("<b>"+feature.properties.place +"</b>");;
+              }
             },
         }).addTo(mymap); 
-    mymap.fitBounds(questionData.getBounds());
-}
-
-//=========== DISTANCE CALCULATION BETWEEN USER & QUESTION POINTS ===============/
-//Distance Calculation sourced from:
-//https://www.geodatasource.com/developers/javascript
-function getDistanceMiles(lat1,lon1,lat2,lon2) {
-  var R = 6371; // Radius of the earth in km
-  var dLat = deg2rad(lat2-lat1);  // deg2rad below
-  var dLon = deg2rad(lon2-lon1); 
-  var a = 
-    Math.sin(dLat/2) * Math.sin(dLat/2) +
-    Math.cos(deg2rad(lat1)) * Math.cos(deg2rad(lat2)) * 
-    Math.sin(dLon/2) * Math.sin(dLon/2)
-    ; 
-  var c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a)); 
-  var d = R * c; // Conversion to Kilometers
-  var d2 = d * 1000;
-  return d2;
-}
-
-function deg2rad(deg) {
-  return deg * (Math.PI/180)
-}
-
-//Calculates distance between user and warren street station
-function getDistance() {
-	// getDistanceFromPoint is the function called once the distance has been found
-	navigator.geolocation.getCurrentPosition(getDistanceFromPoint);
-}
-
-function getDistanceFromPoint(position) {
-	// find the coordinates of a point using this website:
-	// these are the coordinates for Warren Street
-	var lat = 51.524616;
-	var lng = -0.13818;
-	// return the distance in kilometers
-	var distance = calculateDistance(position.coords.latitude, position.coords.longitude, lat,lng, 'K');
-	document.getElementById('showDistance').innerHTML = "Distance: " + distance;
+    mymap.fitBounds(earthquakelayer.getBounds());
 }
 
 // code adapted from https://www.htmlgoodies.com/beyond/javascript/calculate-the-distance-between-two-points-inyour-web-apps.html
 function calculateDistance(lat1, lon1, lat2, lon2, unit) {
-	var radlat1 = Math.PI * lat1/180;
-	var radlat2 = Math.PI * lat2/180;
-	var radlon1 = Math.PI * lon1/180;
-	var radlon2 = Math.PI * lon2/180;
-	var theta = lon1-lon2;
-	var radtheta = Math.PI * theta/180;
-	var subAngle = Math.sin(radlat1) * Math.sin(radlat2) + Math.cos(radlat1) * Math.cos(radlat2) * Math.cos(radtheta);
-	subAngle = Math.acos(subAngle);
-	subAngle = subAngle * 180/Math.PI; // convert the degree value returned by acos back to degrees from radians
-	dist = (subAngle/360) * 2 * Math.PI * 3956; // ((subtended angle in degrees)/360) * 2 * pi * radius )
-	// where radius of the earth is 3956 miles
-	if (unit=="K") { dist = dist * 1.609344 ;} // convert miles to km
-	if (unit=="N") { dist = dist * 0.8684 ;} // convert miles to nautical miles
-	return dist;
-}
-//=====================================
+ var radlat1 = Math.PI * lat1/180;
+ var radlat2 = Math.PI * lat2/180;
+ var radlon1 = Math.PI * lon1/180;
+ var radlon2 = Math.PI * lon2/180;
+ var theta = lon1-lon2;
+ var radtheta = Math.PI * theta/180;
+ var subAngle = Math.sin(radlat1) * Math.sin(radlat2) + Math.cos(radlat1) * Math.cos(radlat2) * Math.cos(radtheta);
+ subAngle = Math.acos(subAngle);
+ subAngle = subAngle * 180/Math.PI; // convert the degree value returned by acos back to degrees from radians
+ dist = (subAngle/360) * 2 * Math.PI * 3956; // ((subtended angle in degrees)/360) * 2 * pi * radius )
+// where radius of the earth is 3956 miles
+ if (unit=="K") { dist = dist * 1.609344 ;} // convert miles to km
+ if (unit=="N") { dist = dist * 0.8684 ;} // convert miles to nautical miles
+ return dist;
+ }
 
-function closeDistanceQuestions(){
-	checkQuestionDistance(questionMarker);
-}
-// Checks users distance from each question marker - gives alert if out of radius
-function checkQuestionDistance(QMarker){
-	// Get users current location
-	latlng = user.getLatLng();
-	alert("Checking if you are within 50m of a question"); 
-	//Loop question location to track if within 25m from user
-	for(var i=0; i<QMarker.length; i++) {
-	    currentMarker = QMarker[i];
-	    currentMarker_latlng = currentMarker.getLatLng();
-		// Push to distance
-	    var distance = getDistanceMiles(currentMarker_latlng.lat, currentMarker_latlng.lng, latlng.lat, latlng.lng);
-	    if (distance <= 25) {
-			QMarker[i].on('click', onClick);
-        } else {
-			QMarker[i].bindPopup("Get closer to the question to answer!");
-        }
-	}
+function getDistanceFromPoint(position) {
+// find the coordinates of a point using this website:
+// the coordinates of Warrent St Station
+	var lngW=-0.138180;
+	var latW=51.524616;
+	
+// return the distance in kilometers
+    var distance = calculateDistance(position.coords.latitude, position.coords.longitude, latW,lngW, 'K');
+    document.getElementById('showDistance').innerHTML = "Distance: " + distance;
+	if (distance < 0.15 ){
+		L.marker([position.coords.latitude, position.coords.longitude]).addTo(mymap).bindPopup("<b>Please click the neatest tab</b>").openPopup();}
 }
 
-//variable for the clicked marker
-var ClickedMarker;
-
-// Click function initiates QuestionClicked (question form div shown after you click on the question marker in leaflet map) 
-function onClick(e) {
-	QuestionClicked(this);
-	ClickedMarker = this;
+// This code is provided by Claire in week 6 appendix, which is
+// used to calculate current distance between chosen points 
+// this is the GeoJSON that comes out of the formdata table
+var geoJSONString= getGeoJSONlayer('http://developer.cege.ucl.ac.uk:30298/getGeoJSON/postgresql/geom');
+function processGeoJSON() {
+// convert the string of downloaded data to JSON
+var geoJSON = JSON.parse(geoJSONString);
+alert(geoJSON[0].type);
+for(var i = 0; i < geoJSON[0].features.length; i++) {
+var feature = geoJSON[0].features[i];
+for ( component in feature){
+if (component == "geometry") { // this is the geometry
+for (geometry in feature[component]){
+attribute = "geometry " +
+feature[component][geometry];
+document.getElementById("loopresults").innerHTML =
+document.getElementById("loopresults").innerHTML + " || " +attribute;
 }
-//Question form shown after the relevant question mark is clicked
-function QuestionClicked(clickedQuestion) {
-	// Replace leaflet map div with questions div
-	document.getElementById('questions').style.display = 'block';
-	document.getElementById('mapid').style.display = 'none';
-	// Receive Data
-	document.getElementById("question").value = clickedQuestion.feature.properties.question;
-	document.getElementById("answer1").value = clickedQuestion.feature.properties.answer1;
-	document.getElementById("answer2").value = clickedQuestion.feature.properties.answer2;
-	document.getElementById("answer3").value = clickedQuestion.feature.properties.answer3;
-	document.getElementById("answer4").value = clickedQuestion.feature.properties.answer4;
-	//Create radio button answers
-	//Make all buttons unchecked initially
-	document.getElementById("radioCheck1").checked = false;
-	document.getElementById("radioCheck2").checked = false;
-	document.getElementById("radioCheck3").checked = false;
-	document.getElementById("radioCheck4").checked = false;
-	ClickedMarker = clickedQuestion;
 }
-
-// Answer selection 
-function submitUserAnswer() {
-        var c1=document.getElementById("radioCheck1").checked;
-        var c2=document.getElementById("radioCheck2").checked;
-        var c3=document.getElementById("radioCheck3").checked;
-        var c4=document.getElementById("radioCheck4").checked; 
-        if (c1==false && c2==false && c3==false && c4==false)
-        {
-            alert("Please select an answer.");
-			return false;
-        }
-        else 
-        {        
-        	AnswerUpload()
-        }
+if (component == "properties") { // these are the attributes
+for (property in feature[component]) {
+attribute = "property " +
+feature[component][property];
+document.getElementById("loopresults").innerHTML =
+document.getElementById("loopresults").innerHTML + " || " +attribute;
+}
+}
+document.getElementById("loopresults").innerHTML =
+document.getElementById("loopresults").innerHTML + " <br> ";
+}
+}
 }
 
-// Variable to tell user if answer is correct/incorrect.
-var TrueAnswer;
 
-// Submit answer to the database & tells user whether correct/incorrect answer chosen
-function AnswerUpload() {
-	alert ("Submitting...");
-	// correct answer
-	var cAnswer = ClickedMarker.feature.properties.correct_answer;
-	// Assign question
-	var question = document.getElementById("question").value;
-	// Assign users answer
-	var answer;
-	// Upload user input to appAnswers database
-	var postString = "question="+question; 
 
-	if (document.getElementById("radioCheck1").checked) {
-		answer = 1;
-        postString=postString+"&answer="+answer;
-    }
-    if (document.getElementById("radioCheck2").checked) {
-		answer = 2;
-    	postString=postString+"&answer="+answer;
-    }
-	if (document.getElementById("radioCheck3").checked) {
-		answer =3;
-		postString=postString+"&answer="+answer;
-	}
-	if (document.getElementById("radioCheck4").checked) {
-		answer =4;
-		postString=postString+"&answer="+answer;
-	}
-//Tells user if correct/incorrect
-	if (answer == cAnswer) {
-		alert("Correct!");
-		TrueAnswer = true;
-	} else {
-		alert("Sorry, your answer" +answer+" is incorrect! \n The correct answer is: " + cAnswer);
-		TrueAnswer = false;
-	}
-	postString = postString + "&cAnswer="+cAnswer;
-	processAnswer(postString);
-}
 
-// Uploads answer data in postString to the database using XMLHttpRequest(
-function processAnswer(postString) {
-   client = new XMLHttpRequest();
-   client.open('POST','http://developer.cege.ucl.ac.uk:30264/AnswerUpload',true);
-   client.setRequestHeader("Content-type", "application/x-www-form-urlencoded");
-   client.onreadystatechange = answerSubmitted;  
-   client.send(postString);
-}
 
-// Receive the response and process
-function answerSubmitted() {
-  // 4 = Ready 
-  if (client.readyState == 4) {
-	document.getElementById('questions').style.display = 'none';
-	document.getElementById('mapid').style.display = 'block';
-	}
-}
+
